@@ -1,0 +1,21 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Logs
+*.log
