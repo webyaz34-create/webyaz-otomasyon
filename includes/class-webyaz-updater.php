@@ -105,75 +105,86 @@ class Webyaz_Updater {
                             <div style="font-size:13px;opacity:0.9;">
                                 v<?php echo esc_html($current_version); ?> → v<?php echo esc_html($remote->version); ?> sürümüne güncelleyebilirsiniz.
                             </div>
-                            <?php if (isset($remote->sections) && isset($remote->sections->changelog)): ?>
-                                <div style="font-size:11px;opacity:0.75;margin-top:4px;"><?php echo wp_kses_post($remote->sections->changelog); ?></div>
-                            <?php endif; ?>
                         </div>
                     </div>
-                    <button type="button" id="wyUpdateBtn" onclick="wyRunUpdate()" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        ⬆️ Şimdi Güncelle
+                    <button type="button" onclick="wyRunUpdate()" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        ⬆️ Güncelle
                     </button>
-                </div>
-
-                <!-- İlerleme Barı -->
-                <div id="wyUpdateProgress" style="display:none;background:#fff;border:1px solid #e0e0e0;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                        <span style="font-size:28px;" id="wyUpdateIcon">⏳</span>
-                        <div>
-                            <div style="font-size:16px;font-weight:700;color:#333;" id="wyUpdateTitle">Güncelleme Başlatılıyor...</div>
-                            <div style="font-size:12px;color:#999;" id="wyUpdateSub">Lütfen bekleyin, sayfa kapatmayın</div>
-                        </div>
-                    </div>
-                    <!-- Bar -->
-                    <div style="background:#f0f0f0;border-radius:10px;height:20px;overflow:hidden;margin-bottom:16px;">
-                        <div id="wyProgressBar" style="background:linear-gradient(90deg,#ff6f00,#ff8f00);height:100%;width:0%;border-radius:10px;transition:width 0.5s ease;display:flex;align-items:center;justify-content:center;">
-                            <span style="color:#fff;font-size:11px;font-weight:700;" id="wyProgressText">0%</span>
-                        </div>
-                    </div>
-                    <!-- Adımlar -->
-                    <div id="wyUpdateSteps" style="font-size:13px;color:#555;line-height:2;"></div>
                 </div>
             <?php endif; ?>
 
-            <!-- Ayarlar -->
-            <form method="post" action="options.php">
-                <?php settings_fields('webyaz_updater_group'); ?>
-                <div class="webyaz-settings-section">
-                    <h2 class="webyaz-section-title">Güncelleme Ayarları</h2>
-                    <div class="webyaz-settings-grid">
-                        <div class="webyaz-field">
-                            <label>Güncelleme JSON URL'si</label>
-                            <input type="url" name="webyaz_updater_opts[update_url]" value="<?php echo esc_attr($opts['update_url']); ?>" placeholder="<?php echo esc_attr($this->update_url); ?>" style="font-size:12px;">
-                            <small style="color:#999;margin-top:4px;">Boş bırakırsanız varsayılan URL kullanılır</small>
-                        </div>
-                        <div class="webyaz-field">
-                            <label>Kontrol Sıklığı (Saat)</label>
-                            <select name="webyaz_updater_opts[check_interval]">
-                                <option value="6" <?php selected($opts['check_interval'], '6'); ?>>6 saat</option>
-                                <option value="12" <?php selected($opts['check_interval'], '12'); ?>>12 saat</option>
-                                <option value="24" <?php selected($opts['check_interval'], '24'); ?>>24 saat</option>
-                                <option value="48" <?php selected($opts['check_interval'], '48'); ?>>48 saat</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <?php submit_button('Kaydet'); ?>
-            </form>
+            <!-- Güncelleme Merkezi - Tek Akış -->
+            <div class="webyaz-settings-section" style="margin-bottom:20px;">
+                <h2 class="webyaz-section-title">Güncelleme Merkezi</h2>
 
-            <!-- Şimdi Kontrol Et -->
-            <div class="webyaz-settings-section" style="margin-top:20px;">
-                <h2 class="webyaz-section-title">Manuel Kontrol</h2>
-                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-                    <div>
-                        <div style="font-size:13px;color:#333;">Son kontrol: <strong id="wyLastCheck"><?php echo esc_html($last_check); ?></strong></div>
-                        <div style="font-size:12px;color:#999;margin-top:2px;">Aktif URL: <code style="font-size:11px;background:#f5f5f5;padding:2px 6px;border-radius:4px;"><?php echo esc_html($this->get_update_url()); ?></code></div>
+                <!-- Durum alanı -->
+                <div id="wyUpdateArea">
+                    <div id="wyIdleState" style="text-align:center;padding:30px 20px;">
+                        <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+                        <div style="font-size:15px;color:#555;margin-bottom:6px;">Mevcut sürüm: <strong>v<?php echo esc_html($current_version); ?></strong></div>
+                        <div style="font-size:12px;color:#999;margin-bottom:20px;">Son kontrol: <?php echo esc_html($last_check); ?></div>
+                        <button type="button" id="wyCheckBtn" onclick="wyCheckAndUpdate()" class="webyaz-btn webyaz-btn-primary" style="padding:12px 32px;font-size:15px;">
+                            🔍 Güncelleme Kontrol Et
+                        </button>
                     </div>
-                    <button type="button" id="wyForceCheck" onclick="wyForceUpdateCheck()" class="webyaz-btn webyaz-btn-primary" style="padding:10px 22px;">
-                        🔍 Şimdi Kontrol Et
-                    </button>
+
+                    <!-- Kontrol ediliyor animasyonu -->
+                    <div id="wyCheckingState" style="display:none;text-align:center;padding:30px 20px;">
+                        <div style="font-size:48px;margin-bottom:12px;animation:wyPulse 1s infinite;">⏳</div>
+                        <div style="font-size:15px;color:#555;font-weight:600;">Güncelleme kontrol ediliyor...</div>
+                        <div style="font-size:12px;color:#999;margin-top:4px;">Lütfen bekleyin</div>
+                    </div>
+
+                    <!-- Güncelleme bulundu -->
+                    <div id="wyFoundState" style="display:none;text-align:center;padding:30px 20px;">
+                        <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+                        <div style="font-size:15px;color:#e65100;font-weight:700;margin-bottom:4px;">Yeni Güncelleme Mevcut!</div>
+                        <div id="wyVersionInfo" style="font-size:13px;color:#555;margin-bottom:20px;"></div>
+                        <button type="button" id="wyInstallBtn" onclick="wyRunUpdate()" style="background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;padding:14px 40px;border-radius:10px;border:none;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 15px rgba(255,111,0,0.3);transition:transform 0.2s;">
+                            ⬆️ Güncelle
+                        </button>
+                    </div>
+
+                    <!-- Güncel - güncelleme yok -->
+                    <div id="wyUpToDateState" style="display:none;text-align:center;padding:30px 20px;">
+                        <div style="font-size:48px;margin-bottom:12px;">✅</div>
+                        <div style="font-size:15px;color:#2e7d32;font-weight:700;">Eklenti Güncel!</div>
+                        <div id="wyCurrentInfo" style="font-size:13px;color:#555;margin-top:4px;"></div>
+                    </div>
+
+                    <!-- İlerleme barı -->
+                    <div id="wyProgressState" style="display:none;padding:30px 20px;">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                            <span style="font-size:28px;" id="wyUpdateIcon">⏳</span>
+                            <div>
+                                <div style="font-size:16px;font-weight:700;color:#333;" id="wyUpdateTitle">Güncelleme Başlatılıyor...</div>
+                                <div style="font-size:12px;color:#999;" id="wyUpdateSub">Lütfen bekleyin, sayfa kapatmayın</div>
+                            </div>
+                        </div>
+                        <div style="background:#f0f0f0;border-radius:10px;height:22px;overflow:hidden;margin-bottom:20px;">
+                            <div id="wyProgressBar" style="background:linear-gradient(90deg,#ff6f00,#ff8f00);height:100%;width:0%;border-radius:10px;transition:width 0.5s ease;display:flex;align-items:center;justify-content:center;">
+                                <span style="color:#fff;font-size:11px;font-weight:700;" id="wyProgressText">0%</span>
+                            </div>
+                        </div>
+                        <div id="wyUpdateSteps" style="font-size:13px;color:#555;line-height:2;"></div>
+                    </div>
+
+                    <!-- Hata durumu -->
+                    <div id="wyErrorState" style="display:none;text-align:center;padding:30px 20px;">
+                        <div style="font-size:48px;margin-bottom:12px;">❌</div>
+                        <div style="font-size:15px;color:#c62828;font-weight:700;">Bağlantı Hatası</div>
+                        <div id="wyErrorMsg" style="font-size:13px;color:#555;margin-top:4px;margin-bottom:20px;"></div>
+                        <button type="button" onclick="wyCheckAndUpdate()" class="webyaz-btn webyaz-btn-primary" style="padding:10px 24px;">
+                            🔄 Tekrar Dene
+                        </button>
+                    </div>
                 </div>
-                <div id="wyCheckResult" style="margin-top:12px;display:none;"></div>
             </div>
+
+            <style>
+            @keyframes wyPulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+            #wyInstallBtn:hover { transform:scale(1.05); }
+            </style>
 
             <!-- Kullanım Rehberi -->
             <div class="webyaz-settings-section" style="margin-top:20px;">
@@ -371,61 +382,54 @@ class Webyaz_Updater {
         </div>
 
         <script>
-        function wyForceUpdateCheck() {
-            var btn = document.getElementById('wyForceCheck');
-            var result = document.getElementById('wyCheckResult');
-            btn.disabled = true;
-            btn.textContent = '⏳ Kontrol ediliyor...';
-            result.style.display = 'none';
+        function wyShowState(stateId) {
+            ['wyIdleState','wyCheckingState','wyFoundState','wyUpToDateState','wyProgressState','wyErrorState'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            var target = document.getElementById(stateId);
+            if (target) target.style.display = 'block';
+            // Üstteki banner'ı gizle
+            var banner = document.getElementById('wyUpdateBanner');
+            if (banner && stateId !== 'wyIdleState') banner.style.display = 'none';
+        }
+
+        function wyCheckAndUpdate() {
+            wyShowState('wyCheckingState');
 
             jQuery.post(ajaxurl, {
                 action: 'webyaz_force_update_check',
                 nonce: '<?php echo wp_create_nonce('webyaz_force_check'); ?>'
             }, function(r) {
-                btn.disabled = false;
-                btn.textContent = '🔍 Şimdi Kontrol Et';
-                result.style.display = 'block';
-
                 if (r.success) {
                     var d = r.data;
                     if (d.has_update) {
-                        result.innerHTML = '<div style="background:#fff3e0;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;">' +
-                            '<strong style="color:#e65100;">⬆️ Güncelleme mevcut!</strong><br>' +
-                            '<span style="font-size:13px;color:#555;">Mevcut: v' + d.current + ' → Yeni: v' + d.remote + '</span>' +
-                            '</div>';
+                        document.getElementById('wyVersionInfo').innerHTML = 'v' + d.current + ' → <strong>v' + d.remote + '</strong>';
+                        wyShowState('wyFoundState');
                     } else {
-                        result.innerHTML = '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 16px;">' +
-                            '<strong style="color:#2e7d32;">✅ Eklenti güncel!</strong><br>' +
-                            '<span style="font-size:13px;color:#555;">Mevcut sürüm: v' + d.current + (d.remote ? ' | Sunucu: v' + d.remote : '') + '</span>' +
-                            '</div>';
+                        document.getElementById('wyCurrentInfo').textContent = 'Sürüm: v' + d.current + (d.remote ? ' | Sunucu: v' + d.remote : '');
+                        wyShowState('wyUpToDateState');
                     }
-                    document.getElementById('wyLastCheck').textContent = 'Az önce kontrol edildi';
                 } else {
-                    result.innerHTML = '<div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:8px;padding:12px 16px;">' +
-                        '<strong style="color:#c62828;">❌ Bağlantı hatası!</strong><br>' +
-                        '<span style="font-size:13px;color:#555;">' + (r.data || 'Sunucuya ulaşılamadı.') + '</span>' +
-                        '</div>';
+                    document.getElementById('wyErrorMsg').textContent = r.data || 'Sunucuya ulaşılamadı.';
+                    wyShowState('wyErrorState');
                 }
             }).fail(function() {
-                btn.disabled = false;
-                btn.textContent = '🔍 Şimdi Kontrol Et';
-                result.style.display = 'block';
-                result.innerHTML = '<div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:8px;padding:12px 16px;"><strong style="color:#c62828;">❌ AJAX hatası</strong></div>';
+                document.getElementById('wyErrorMsg').textContent = 'Bağlantı hatası oluştu.';
+                wyShowState('wyErrorState');
             });
         }
 
         function wyRunUpdate() {
-            var banner = document.getElementById('wyUpdateBanner');
-            var progress = document.getElementById('wyUpdateProgress');
+            wyShowState('wyProgressState');
+
             var bar = document.getElementById('wyProgressBar');
             var barText = document.getElementById('wyProgressText');
             var icon = document.getElementById('wyUpdateIcon');
             var title = document.getElementById('wyUpdateTitle');
             var sub = document.getElementById('wyUpdateSub');
             var steps = document.getElementById('wyUpdateSteps');
-
-            banner.style.display = 'none';
-            progress.style.display = 'block';
+            steps.innerHTML = '';
 
             var updateSteps = [
                 {pct: 10, text: '📥 Güncelleme paketi indiriliyor...'},
@@ -461,9 +465,6 @@ class Webyaz_Updater {
                     title.style.color = '#2e7d32';
                     sub.textContent = r.data.version ? 'v' + r.data.version + ' sürümüne güncellendi' : 'Başarıyla güncellendi';
                     steps.innerHTML += '<div style="padding:3px 0;color:#2e7d32;font-weight:600;">✅ Eklenti güncellendi ve etkinleştirildi.</div>';
-                    setTimeout(function(){
-                        steps.innerHTML += '<div style="padding:8px 0;"><a href="' + location.href + '" style="background:#2e7d32;color:#fff;padding:8px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">🔄 Sayfayı Yenile</a></div>';
-                    }, 500);
                 } else {
                     bar.style.width = '100%';
                     bar.style.background = '#f44336';

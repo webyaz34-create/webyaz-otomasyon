@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Webyaz Otomasyon
  * Description: Flatsome tema uyumlu e-ticaret eklentisi - Checkout, SEO, siparis bildirimleri, urun karsilastirma, favoriler, guvenlik ve daha fazlasi.
- * Version: 4.3.1
+ * Version: 4.4.0
  * Author: Webyaz
  * Text Domain: webyaz-otomasyon
  * Requires at least: 5.0
@@ -12,7 +12,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('WEBYAZ_VERSION', '4.3.1');
+define('WEBYAZ_VERSION', '4.4.0');
 define('WEBYAZ_PATH', plugin_dir_path(__FILE__));
 define('WEBYAZ_URL', plugin_dir_url(__FILE__));
 
