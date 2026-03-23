@@ -1,24 +1,18 @@
 {
     "name": "Webyaz Otomasyon",
     "slug": "webyaz-otomasyon",
-    "version": "4.0.0",
-    "download_url": "https://github.com/webyaz34-create/webyaz-otomasyon/releases/download/v4.0.0/webyaz-otomasyon.zip",
+    "version": "4.1.0",
+    "download_url": "https://github.com/webyaz34-create/webyaz-otomasyon/releases/download/v4.1.0/webyaz-otomasyon.zip",
     "homepage": "https://webyaz.com",
     "requires": "5.0",
     "tested": "6.7",
     "requires_php": "7.0",
     "author": "Webyaz",
-    "last_updated": "2026-03-22",
+    "last_updated": "2026-03-23",
     "sections": {
-        "description": "Flatsome tema uyumlu profesyonel e-ticaret eklentisi. Checkout optimizasyonu, SEO, sipariş bildirimleri, ürün karşılaştırma, favoriler, güvenlik ve 80+ modül.",
-        "changelog": "<h4>v4.0.0 - 22 Mart 2026</h4><ul><li>✨ Otomatik güncelleme sistemi eklendi</li><li>🛡️ Güvenlik iyileştirmeleri</li><li>🚀 Performans optimizasyonları</li></ul>"
+        "description": "Flatsome tema uyumlu profesyonel e-ticaret eklentisi. 80+ modul.",
+        "changelog": "<h4>v4.1.0 - 2026-03-23</h4><ul><li>Guncelleme</li></ul>"
     },
-    "banners": {
-        "low": "",
-        "high": ""
-    },
-    "icons": {
-        "1x": "",
-        "2x": ""
-    }
+    "banners": {"low": "", "high": ""},
+    "icons": {"1x": "", "2x": ""}
 }
