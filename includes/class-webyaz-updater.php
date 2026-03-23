@@ -26,6 +26,8 @@ class Webyaz_Updater {
         add_action('admin_init', array($this, 'register_settings'));
         // Zorla kontrol AJAX
         add_action('wp_ajax_webyaz_force_update_check', array($this, 'ajax_force_check'));
+        // AJAX güncelleme
+        add_action('wp_ajax_webyaz_run_update', array($this, 'ajax_run_update'));
     }
 
     public function register_settings() {
@@ -95,13 +97,7 @@ class Webyaz_Updater {
             </div>
 
             <?php if ($has_update): ?>
-                <?php
-                $update_url = wp_nonce_url(
-                    self_admin_url('update.php?action=upgrade-plugin&plugin=' . urlencode($this->plugin_file)),
-                    'upgrade-plugin_' . $this->plugin_file
-                );
-                ?>
-                <div style="background:linear-gradient(135deg,#ff6f00,#ff8f00);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 4px 15px rgba(255,111,0,0.3);">
+                <div id="wyUpdateBanner" style="background:linear-gradient(135deg,#ff6f00,#ff8f00);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 4px 15px rgba(255,111,0,0.3);">
                     <div style="display:flex;align-items:center;gap:12px;color:#fff;">
                         <span style="font-size:32px;">🔔</span>
                         <div>
@@ -114,9 +110,28 @@ class Webyaz_Updater {
                             <?php endif; ?>
                         </div>
                     </div>
-                    <a href="<?php echo esc_url($update_url); ?>" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <button type="button" id="wyUpdateBtn" onclick="wyRunUpdate()" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
                         ⬆️ Şimdi Güncelle
-                    </a>
+                    </button>
+                </div>
+
+                <!-- İlerleme Barı -->
+                <div id="wyUpdateProgress" style="display:none;background:#fff;border:1px solid #e0e0e0;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                        <span style="font-size:28px;" id="wyUpdateIcon">⏳</span>
+                        <div>
+                            <div style="font-size:16px;font-weight:700;color:#333;" id="wyUpdateTitle">Güncelleme Başlatılıyor...</div>
+                            <div style="font-size:12px;color:#999;" id="wyUpdateSub">Lütfen bekleyin, sayfa kapatmayın</div>
+                        </div>
+                    </div>
+                    <!-- Bar -->
+                    <div style="background:#f0f0f0;border-radius:10px;height:20px;overflow:hidden;margin-bottom:16px;">
+                        <div id="wyProgressBar" style="background:linear-gradient(90deg,#ff6f00,#ff8f00);height:100%;width:0%;border-radius:10px;transition:width 0.5s ease;display:flex;align-items:center;justify-content:center;">
+                            <span style="color:#fff;font-size:11px;font-weight:700;" id="wyProgressText">0%</span>
+                        </div>
+                    </div>
+                    <!-- Adımlar -->
+                    <div id="wyUpdateSteps" style="font-size:13px;color:#555;line-height:2;"></div>
                 </div>
             <?php endif; ?>
 
@@ -398,6 +413,77 @@ class Webyaz_Updater {
                 result.innerHTML = '<div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:8px;padding:12px 16px;"><strong style="color:#c62828;">❌ AJAX hatası</strong></div>';
             });
         }
+
+        function wyRunUpdate() {
+            var banner = document.getElementById('wyUpdateBanner');
+            var progress = document.getElementById('wyUpdateProgress');
+            var bar = document.getElementById('wyProgressBar');
+            var barText = document.getElementById('wyProgressText');
+            var icon = document.getElementById('wyUpdateIcon');
+            var title = document.getElementById('wyUpdateTitle');
+            var sub = document.getElementById('wyUpdateSub');
+            var steps = document.getElementById('wyUpdateSteps');
+
+            banner.style.display = 'none';
+            progress.style.display = 'block';
+
+            var updateSteps = [
+                {pct: 10, text: '📥 Güncelleme paketi indiriliyor...'},
+                {pct: 30, text: '📦 Paket açılıyor...'},
+                {pct: 50, text: '🔧 Güncel sürüm kuruluyor...'},
+                {pct: 70, text: '🗑️ Eski sürüm kaldırılıyor...'},
+                {pct: 85, text: '⚙️ Eklenti etkinleştiriliyor...'},
+            ];
+
+            var stepIdx = 0;
+            function showStep() {
+                if (stepIdx < updateSteps.length) {
+                    var s = updateSteps[stepIdx];
+                    bar.style.width = s.pct + '%';
+                    barText.textContent = s.pct + '%';
+                    steps.innerHTML += '<div style="padding:3px 0;">⏳ ' + s.text + '</div>';
+                    stepIdx++;
+                    setTimeout(showStep, 600);
+                }
+            }
+            showStep();
+
+            jQuery.post(ajaxurl, {
+                action: 'webyaz_run_update',
+                nonce: '<?php echo wp_create_nonce('webyaz_run_update'); ?>'
+            }, function(r) {
+                if (r.success) {
+                    bar.style.width = '100%';
+                    barText.textContent = '100%';
+                    bar.style.background = 'linear-gradient(90deg,#2e7d32,#4caf50)';
+                    icon.textContent = '✅';
+                    title.textContent = 'Güncelleme Tamamlandı!';
+                    title.style.color = '#2e7d32';
+                    sub.textContent = r.data.version ? 'v' + r.data.version + ' sürümüne güncellendi' : 'Başarıyla güncellendi';
+                    steps.innerHTML += '<div style="padding:3px 0;color:#2e7d32;font-weight:600;">✅ Eklenti güncellendi ve etkinleştirildi.</div>';
+                    setTimeout(function(){
+                        steps.innerHTML += '<div style="padding:8px 0;"><a href="' + location.href + '" style="background:#2e7d32;color:#fff;padding:8px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">🔄 Sayfayı Yenile</a></div>';
+                    }, 500);
+                } else {
+                    bar.style.width = '100%';
+                    bar.style.background = '#f44336';
+                    barText.textContent = 'Hata';
+                    icon.textContent = '❌';
+                    title.textContent = 'Güncelleme Başarısız';
+                    title.style.color = '#c62828';
+                    sub.textContent = r.data || 'Bilinmeyen hata';
+                    steps.innerHTML += '<div style="padding:3px 0;color:#c62828;">❌ ' + (r.data || 'Güncelleme sırasında hata oluştu.') + '</div>';
+                }
+            }).fail(function() {
+                bar.style.width = '100%';
+                bar.style.background = '#f44336';
+                barText.textContent = 'Hata';
+                icon.textContent = '❌';
+                title.textContent = 'Bağlantı Hatası';
+                title.style.color = '#c62828';
+                sub.textContent = 'Sunucuya ulaşılamadı';
+            });
+        }
         </script>
         <?php
     }
@@ -419,6 +505,45 @@ class Webyaz_Updater {
             'current'    => $current,
             'remote'     => $remote->version,
             'has_update' => version_compare($remote->version, $current, '>'),
+        ));
+    }
+
+    /* ─── AJAX: Güncelleme Çalıştır ─── */
+    public function ajax_run_update() {
+        check_ajax_referer('webyaz_run_update', 'nonce');
+        if (!current_user_can('update_plugins')) wp_send_json_error('Güncelleme yetkiniz yok.');
+
+        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        // Sessiz upgrader — çıktı üretmez
+        $skin = new \WP_Ajax_Upgrader_Skin();
+        $upgrader = new \Plugin_Upgrader($skin);
+
+        $result = $upgrader->upgrade($this->plugin_file);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        if ($result === false) {
+            wp_send_json_error('Güncelleme başarısız oldu. Paket indirilemedi veya kurulamadı.');
+        }
+
+        // Eklentiyi tekrar etkinleştir
+        activate_plugin($this->plugin_file);
+
+        // Cache temizle
+        delete_transient($this->cache_key);
+        delete_site_transient('update_plugins');
+
+        // Yeni versiyonu oku
+        $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $this->plugin_file);
+        $new_version = isset($plugin_data['Version']) ? $plugin_data['Version'] : '';
+
+        wp_send_json_success(array(
+            'version' => $new_version,
+            'message' => 'Güncelleme başarıyla tamamlandı.',
         ));
     }
 
