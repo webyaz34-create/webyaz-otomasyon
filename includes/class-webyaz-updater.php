@@ -317,12 +317,18 @@ class Webyaz_Updater {
         check_ajax_referer('webyaz_force_check', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Yetkiniz yok.');
 
+        // Tüm cache temizle
         delete_transient($this->cache_key);
+        delete_site_transient('update_plugins');
+
         $remote = $this->get_remote_data(true);
 
         if (!$remote || !isset($remote->version)) {
             wp_send_json_error('Sunucuya ulaşılamadı veya JSON dosyası geçersiz. URL: ' . $this->get_update_url());
         }
+
+        // WordPress update transient'ını da güncelle
+        wp_update_plugins();
 
         $current = defined('WEBYAZ_VERSION') ? WEBYAZ_VERSION : '0.0.0';
         wp_send_json_success(array(
@@ -418,12 +424,15 @@ class Webyaz_Updater {
         }
 
         $url = $this->get_update_url();
+        // Cache-busting: CDN cache atla
+        $url = add_query_arg('t', time(), $url);
         $response = wp_remote_get($url, array(
             'timeout'   => 15,
             'sslverify' => false,
             'headers'   => array(
                 'Accept'        => 'application/json',
-                'Cache-Control' => 'no-cache',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma'        => 'no-cache',
             ),
         ));
 
