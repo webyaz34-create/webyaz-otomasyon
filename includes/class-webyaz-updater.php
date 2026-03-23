@@ -230,6 +230,10 @@ class Webyaz_Updater {
         function wyRunUpdate() {
             wyShowState('wyProgressState');
 
+            // Sayfa yenileme koruması
+            window._wyUpdating = true;
+            window.addEventListener('beforeunload', wyPreventLeave);
+
             var bar = document.getElementById('wyProgressBar');
             var barText = document.getElementById('wyProgressText');
             var icon = document.getElementById('wyUpdateIcon');
@@ -263,6 +267,8 @@ class Webyaz_Updater {
                 action: 'webyaz_run_update',
                 nonce: '<?php echo wp_create_nonce('webyaz_run_update'); ?>'
             }, function(r) {
+                window._wyUpdating = false;
+                window.removeEventListener('beforeunload', wyPreventLeave);
                 if (r.success) {
                     bar.style.width = '100%';
                     barText.textContent = '100%';
@@ -283,6 +289,8 @@ class Webyaz_Updater {
                     steps.innerHTML += '<div style="padding:3px 0;color:#c62828;">❌ ' + (r.data || 'Güncelleme sırasında hata oluştu.') + '</div>';
                 }
             }).fail(function() {
+                window._wyUpdating = false;
+                window.removeEventListener('beforeunload', wyPreventLeave);
                 bar.style.width = '100%';
                 bar.style.background = '#f44336';
                 barText.textContent = 'Hata';
@@ -291,6 +299,14 @@ class Webyaz_Updater {
                 title.style.color = '#c62828';
                 sub.textContent = 'Sunucuya ulaşılamadı';
             });
+        }
+
+        function wyPreventLeave(e) {
+            if (window._wyUpdating) {
+                e.preventDefault();
+                e.returnValue = 'Güncelleme devam ediyor! Sayfayı kapatırsanız eklenti bozulabilir.';
+                return e.returnValue;
+            }
         }
         </script>
         <?php
