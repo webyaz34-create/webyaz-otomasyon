@@ -339,6 +339,12 @@ class Webyaz_Updater {
 
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        require_once ABSPATH . 'wp-admin/includes/update.php';
+
+        // Cache temizle — WordPress taze download URL alsın
+        delete_transient($this->cache_key);
+        delete_site_transient('update_plugins');
+        wp_update_plugins();
 
         // Sessiz upgrader — çıktı üretmez
         $skin = new \WP_Ajax_Upgrader_Skin();
@@ -351,7 +357,16 @@ class Webyaz_Updater {
         }
 
         if ($result === false) {
-            wp_send_json_error('Güncelleme başarısız oldu. Paket indirilemedi veya kurulamadı.');
+            // Transient'tan detaylı hata bilgisi almayı dene
+            $update_plugins = get_site_transient('update_plugins');
+            $debug_info = '';
+            if (isset($update_plugins->response[$this->plugin_file])) {
+                $pkg = $update_plugins->response[$this->plugin_file];
+                $debug_info = ' URL: ' . (isset($pkg->package) ? $pkg->package : 'yok');
+            } else {
+                $debug_info = ' Güncelleme transient\'ında eklenti bulunamadı.';
+            }
+            wp_send_json_error('Güncelleme başarısız oldu. Paket indirilemedi veya kurulamadı.' . $debug_info);
         }
 
         // Eklentiyi tekrar etkinleştir
