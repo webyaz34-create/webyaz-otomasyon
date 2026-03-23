@@ -5,7 +5,7 @@ class Webyaz_Updater {
 
     private $plugin_slug   = 'webyaz-otomasyon';
     private $plugin_file   = 'webyaz-otomasyon/webyaz-otomasyon.php';
-    private $update_url    = 'https://raw.githubusercontent.com/webyaz34-create/webyaz-otomasyon/main/update-info.json';
+    private $update_url    = 'https://api.github.com/repos/webyaz34-create/webyaz-otomasyon/contents/update-info.json?ref=main';
     private $cache_key     = 'webyaz_update_data';
     private $cache_seconds = 43200; // 12 saat
 
@@ -424,15 +424,13 @@ class Webyaz_Updater {
         }
 
         $url = $this->get_update_url();
-        // Cache-busting: CDN cache atla
-        $url = add_query_arg('t', time(), $url);
         $response = wp_remote_get($url, array(
             'timeout'   => 15,
             'sslverify' => false,
             'headers'   => array(
-                'Accept'        => 'application/json',
+                'Accept'        => 'application/vnd.github.v3+json',
                 'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma'        => 'no-cache',
+                'User-Agent'    => 'Webyaz-Updater',
             ),
         ));
 
@@ -442,7 +440,16 @@ class Webyaz_Updater {
         }
 
         $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body);
+        $api_data = json_decode($body);
+
+        // GitHub API base64 encoded content
+        if (isset($api_data->content) && isset($api_data->encoding) && $api_data->encoding === 'base64') {
+            $json_content = base64_decode($api_data->content);
+            $data = json_decode($json_content);
+        } else {
+            // Fallback: doğrudan JSON (raw URL kullanılıyorsa)
+            $data = $api_data;
+        }
 
         if (empty($data) || !isset($data->version)) {
             set_transient($this->cache_key, null, 3600);
