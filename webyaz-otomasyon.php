@@ -48,6 +48,7 @@ function webyaz_init()
     require_once WEBYAZ_PATH . 'includes/class-webyaz-backup-notice.php';
     require_once WEBYAZ_PATH . 'includes/class-webyaz-cache-notice.php';
     require_once WEBYAZ_PATH . 'includes/class-webyaz-role-manager.php';
+    require_once WEBYAZ_PATH . 'includes/class-webyaz-help.php';
 
     // Toggle'a bagli moduller - sadece aktifse yukle
     $toggle_map = array(
@@ -128,6 +129,7 @@ function webyaz_init()
         'webyaz_mod_compatible'       => 'class-webyaz-compatible.php',
         'webyaz_mod_customer_ledger'  => 'class-webyaz-customer-ledger.php',
         'webyaz_mod_updater'          => 'class-webyaz-updater.php',
+        'webyaz_mod_support'          => 'class-webyaz-support.php',
     );
 
     foreach ($toggle_map as $option_key => $file) {

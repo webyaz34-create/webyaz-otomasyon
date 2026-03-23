@@ -312,6 +312,7 @@ class Webyaz_Settings
             array('key' => 'webyaz_mod_partner', 'title' => 'Partner Sistemi', 'desc' => 'Ortaklik ve komisyon yonetimi', 'icon' => 'dashicons-businessperson', 'group' => 'kullanici'),
             array('key' => 'webyaz_mod_role_manager', 'title' => 'Rol Yonetimi', 'desc' => 'Kullanici rolu menu kisitlamalari', 'icon' => 'dashicons-admin-users', 'group' => 'kullanici'),
             array('key' => 'webyaz_mod_customer_ledger', 'title' => 'Musteri Cari', 'desc' => 'Toplam harcama takibi ve otomatik kupon', 'icon' => 'dashicons-money-alt', 'group' => 'kullanici'),
+            array('key' => 'webyaz_mod_support', 'title' => 'Destek Sistemi', 'desc' => 'Musteri destek talebi ve cevaplama', 'icon' => 'dashicons-sos', 'group' => 'kullanici'),
             // -- Guvenlik --
             array('key' => 'webyaz_mod_antibot', 'title' => 'Anti-Bot', 'desc' => 'Sahte kayitlari engelle', 'icon' => 'dashicons-shield', 'group' => 'guvenlik'),
             array('key' => 'webyaz_mod_brute_force', 'title' => 'Brute Force Koruma', 'desc' => 'Giris denemesi sinirla', 'icon' => 'dashicons-lock', 'group' => 'guvenlik'),
