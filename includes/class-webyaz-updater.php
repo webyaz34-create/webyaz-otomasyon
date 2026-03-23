@@ -5,7 +5,7 @@ class Webyaz_Updater {
 
     private $plugin_slug   = 'webyaz-otomasyon';
     private $plugin_file   = 'webyaz-otomasyon/webyaz-otomasyon.php';
-    private $update_url    = 'https://raw.githubusercontent.com/nicsuspended/webyaz-otomasyon/main/update-info.json';
+    private $update_url    = 'https://raw.githubusercontent.com/webyaz34-create/webyaz-otomasyon/main/update-info.json';
     private $cache_key     = 'webyaz_update_data';
     private $cache_seconds = 43200; // 12 saat
 
