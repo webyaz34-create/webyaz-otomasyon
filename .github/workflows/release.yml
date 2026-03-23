@@ -1,0 +1,84 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/**'
+      - '*.md'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from plugin file
+        id: version
+        run: |
+          VER=$(grep -oP "Version:\s*\K[0-9.]+" webyaz-otomasyon.php)
+          echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "Plugin version: $VER"
+
+      - name: Check if release already exists
+        id: check
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create plugin ZIP
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          mkdir -p /tmp/webyaz-otomasyon
+          rsync -a --exclude='.git' --exclude='.github' --exclude='*.md' --exclude='.gitignore' ./ /tmp/webyaz-otomasyon/
+          cd /tmp && zip -r webyaz-otomasyon.zip webyaz-otomasyon/
+
+      - name: Update update-info.json
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          cat > update-info.json << EOF
+          {
+              "name": "Webyaz Otomasyon",
+              "slug": "webyaz-otomasyon",
+              "version": "$VER",
+              "download_url": "https://github.com/webyaz34-create/webyaz-otomasyon/releases/download/v$VER/webyaz-otomasyon.zip",
+              "homepage": "https://webyaz.com",
+              "requires": "5.0",
+              "tested": "6.7",
+              "requires_php": "7.0",
+              "author": "Webyaz",
+              "last_updated": "$DATE",
+              "sections": {
+                  "description": "Flatsome tema uyumlu profesyonel e-ticaret eklentisi. 80+ modul.",
+                  "changelog": "<h4>v$VER - $DATE</h4><ul><li>Guncelleme</li></ul>"
+              },
+              "banners": {"low": "", "high": ""},
+              "icons": {"1x": "", "2x": ""}
+          }
+          EOF
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add update-info.json
+          git commit -m "chore: update-info.json v$VER" || true
+          git push || true
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          gh release create "v$VER" /tmp/webyaz-otomasyon.zip \
+            --title "v$VER" \
+            --notes "Webyaz Otomasyon v$VER" \
+            --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
