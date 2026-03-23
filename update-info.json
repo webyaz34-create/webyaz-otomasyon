@@ -1,8 +1,8 @@
 {
     "name": "Webyaz Otomasyon",
     "slug": "webyaz-otomasyon",
-    "version": "4.2.0",
-    "download_url": "https://github.com/webyaz34-create/webyaz-otomasyon/releases/download/v4.2.0/webyaz-otomasyon.zip",
+    "version": "4.3.0",
+    "download_url": "https://github.com/webyaz34-create/webyaz-otomasyon/releases/download/v4.3.0/webyaz-otomasyon.zip",
     "homepage": "https://webyaz.com",
     "requires": "5.0",
     "tested": "6.7",
@@ -11,7 +11,7 @@
     "last_updated": "2026-03-23",
     "sections": {
         "description": "Flatsome tema uyumlu profesyonel e-ticaret eklentisi. 80+ modul.",
-        "changelog": "<h4>v4.2.0 - 2026-03-23</h4><ul><li>Guncelleme</li></ul>"
+        "changelog": "<h4>v4.3.0 - 2026-03-23</h4><ul><li>Guncelleme</li></ul>"
     },
     "banners": {"low": "", "high": ""},
     "icons": {"1x": "", "2x": ""}
