@@ -706,16 +706,16 @@ class Webyaz_Updater {
         $screen = get_current_screen();
         if (!$screen || strpos($screen->id, 'webyaz') === false) return;
 
+        // Güncelleme sayfasında zaten banner var, tekrar gösterme
+        if (strpos($screen->id, 'webyaz-updater') !== false) return;
+
         $remote = $this->get_remote_data();
         if (!$remote || !isset($remote->version)) return;
 
         $current = defined('WEBYAZ_VERSION') ? WEBYAZ_VERSION : '0.0.0';
         if (!version_compare($remote->version, $current, '>')) return;
 
-        $update_url = wp_nonce_url(
-            self_admin_url('update.php?action=upgrade-plugin&plugin=' . urlencode($this->plugin_file)),
-            'upgrade-plugin_' . $this->plugin_file
-        );
+        $updater_url = admin_url('admin.php?page=webyaz-updater');
         ?>
         <div class="notice" style="border:none;padding:0;margin:5px 0 15px;background:transparent;">
             <div style="background:linear-gradient(135deg,#1a237e,#283593);border-radius:12px;padding:20px 24px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -732,8 +732,8 @@ class Webyaz_Updater {
                         </div>
                     </div>
                 </div>
-                <a href="<?php echo esc_url($update_url); ?>" style="background:#fff;color:#1a237e;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">
-                    ⬆️ Şimdi Güncelle
+                <a href="<?php echo esc_url($updater_url); ?>" style="background:#fff;color:#1a237e;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">
+                    ⬆️ Güncelle
                 </a>
             </div>
         </div>
@@ -752,10 +752,7 @@ class Webyaz_Updater {
         $current = defined('WEBYAZ_VERSION') ? WEBYAZ_VERSION : '0.0.0';
         if (!version_compare($remote->version, $current, '>')) return;
 
-        $update_url = wp_nonce_url(
-            self_admin_url('update.php?action=upgrade-plugin&plugin=' . urlencode($this->plugin_file)),
-            'upgrade-plugin_' . $this->plugin_file
-        );
+        $updater_url = admin_url('admin.php?page=webyaz-updater');
         ?>
         <div style="background:linear-gradient(135deg,#ff6f00,#ff8f00);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 4px 15px rgba(255,111,0,0.3);">
             <div style="display:flex;align-items:center;gap:12px;color:#fff;">
@@ -767,7 +764,7 @@ class Webyaz_Updater {
                     </div>
                 </div>
             </div>
-            <a href="<?php echo esc_url($update_url); ?>" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <a href="<?php echo esc_url($updater_url); ?>" style="background:#fff;color:#e65100;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
                 ⬆️ Güncelle
             </a>
         </div>
