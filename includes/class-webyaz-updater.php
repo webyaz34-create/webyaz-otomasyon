@@ -278,6 +278,21 @@ class Webyaz_Updater {
                     title.style.color = '#2e7d32';
                     sub.textContent = r.data.version ? 'v' + r.data.version + ' sürümüne güncellendi' : 'Başarıyla güncellendi';
                     steps.innerHTML += '<div style="padding:3px 0;color:#2e7d32;font-weight:600;">✅ Eklenti güncellendi ve etkinleştirildi.</div>';
+                    // 3 saniye sonra sayfayı yenile
+                    var countdown = 3;
+                    var countEl = document.createElement('div');
+                    countEl.style.cssText = 'padding:8px 0;color:#666;font-size:13px;';
+                    countEl.textContent = 'Sayfa ' + countdown + ' saniye sonra yenilenecek...';
+                    steps.appendChild(countEl);
+                    var timer = setInterval(function() {
+                        countdown--;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            location.reload();
+                        } else {
+                            countEl.textContent = 'Sayfa ' + countdown + ' saniye sonra yenilenecek...';
+                        }
+                    }, 1000);
                 } else {
                     bar.style.width = '100%';
                     bar.style.background = '#f44336';
